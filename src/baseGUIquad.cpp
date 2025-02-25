@@ -8,8 +8,8 @@ namespace forgeGUI
         #include "../shaders/baseQuadVert.glsl"
     ;
     std::vector<BaseQuad::baseQuadData> BaseQuad::quadData{};
-    bool BaseQuad::shouldUpdateBuffer = false;
-    bool BaseQuad::shouldReallocateBuffer = false;
+    bool BaseQuad::shouldUpdateBuffer = true;
+    bool BaseQuad::shouldReallocateBuffer = true;
     GLuint BaseQuad::GetVAO()
     {
         static GLuint vao = 0;
@@ -32,7 +32,7 @@ namespace forgeGUI
 
         // bgColor attrib
         glEnableVertexArrayAttrib(vao, 2); 
-        glVertexArrayAttribFormat(vao, 2, 2, GL_FLOAT, GL_FALSE, 0);
+        glVertexArrayAttribFormat(vao, 2, 4, GL_FLOAT, GL_FALSE, 0);
         glVertexArrayAttribBinding(vao, 2, 2);
         glVertexArrayBindingDivisor(vao, 2, 1);
 
@@ -98,12 +98,16 @@ namespace forgeGUI
         }
         return shader;
     }
-    void BaseQuad::Draw()
+    void BaseQuad::DrawAll(glm::uvec2 windowSize)
     {
-        glUseProgram(GetShader());
-        glBindVertexArray(GetVAO());
+        UpdateBuffer();
 
-        glBindVertexBuffer(0, getQuadDataBuffer().GetName(), 0, sizeof(baseQuadData));
+        glUseProgram(GetShader());
+
+        glUniform2ui(0, windowSize.x, windowSize.y);
+
+        glBindVertexArray(GetVAO());
+        glBindVertexBuffer(0, getQuadDataBuffer().GetName(), offsetof(baseQuadData, size), sizeof(baseQuadData));
         glBindVertexBuffer(1, getQuadDataBuffer().GetName(), offsetof(baseQuadData, pos), sizeof(baseQuadData));
         glBindVertexBuffer(2, getQuadDataBuffer().GetName(), offsetof(baseQuadData, bgColor), sizeof(baseQuadData));
         glBindVertexBuffer(3, getQuadDataBuffer().GetName(), offsetof(baseQuadData, depth), sizeof(baseQuadData));
@@ -111,14 +115,16 @@ namespace forgeGUI
         glDrawArraysInstanced(GL_TRIANGLE_FAN, 0, 4, quadData.size());
     }
 
-    BaseQuad::BaseQuad(glm::ivec2 size, glm::ivec2 pos, glm::vec3 bgColor):
+    BaseQuad::BaseQuad(glm::ivec2 size, glm::ivec2 pos, glm::vec4 bgColor):
         dataIndex(quadData.size())
     {
         quadData.emplace_back(size, pos, bgColor);
         shouldReallocateBuffer = true;
     }
-    void BaseQuad::updateBuffer()
+    void BaseQuad::UpdateBuffer()
     {
+        if(!getQuadDataBuffer().IsDefined())
+            getQuadDataBuffer() = FlexBuffer(quadData.size(), quadData.data(), GL_DYNAMIC_DRAW);
         if(shouldReallocateBuffer)
         {
             getQuadDataBuffer().ReallocBuffer(quadData.size(), quadData.data(), GL_DYNAMIC_DRAW);

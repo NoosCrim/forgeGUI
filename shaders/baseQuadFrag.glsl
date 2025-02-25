@@ -1,8 +1,10 @@
 R"(
 #version 430
-out vec4 fragCol;
+
+in vec4 fragCol;
+out vec4 outCol;
 void main()
 {
-    fragCol = vec4(1);
+    outCol = fragCol;
 }
 )"

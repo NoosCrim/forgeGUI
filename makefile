@@ -1,9 +1,10 @@
 # Compiler and flags
 CXX := g++
 CXX_FLAGS_COMMON := -std=c++23 -Wall -Wextra -Iheaders -MMD -MP
-CXX_FLAGS_DEBUG := -fsanitize-address-use-after-scope -fsanitize=leak,address,undefined,float-divide-by-zero,enum -Og
+CXX_FLAGS_DEBUG := -Og
+CXX_FLAGS_TEST_DEBUG := -fsanitize-address-use-after-scope -fsanitize=leak,address,undefined,float-divide-by-zero,enum
 CXX_FLAGS_RELEASE := -O3
-CXX_FLAGS_TEST := 
+CXX_FLAGS_TEST_RELEASE := 
 CXX_FLAGS := $(CXX_FLAGS_COMMON)
 
 AR := ar
@@ -19,7 +20,7 @@ TEST_OBJ_DIR := tests/obj
 TEST_BIN_DIR := tests/bin
 
 # Library output
-LIB_NAME = myGUI
+LIB_NAME = forgeGUI
 LIB := lib$(LIB_NAME).a
 LIB_PATH := $(BIN_DIR)/$(LIB)
 
@@ -60,19 +61,27 @@ TEST_LIBS := $(OPENGL_LIB) $(TEST_OPENGL_CONTEXT_LIB) $(TEST_OPENGL_LOADER_LIB) 
 default: release
 
 test: test_debug
+
+test_release: CXX_FLAGS:= $(CXX_FLAGS_COMMON) $(CXX_FLAGS_RELEASE) 
+test_release: CXX_FLAGS_TEST := $(CXX_FLAGS_TEST_RELEASE)
 test_release: release $(TEST_BIN)
+
+test_debug: CXX_FLAGS:= $(CXX_FLAGS_COMMON) $(CXX_FLAGS_DEBUG) 
+test_debug: CXX_FLAGS_TEST := $(CXX_FLAGS_TEST_DEBUG)
 test_debug: debug $(TEST_BIN)
 
 # Default target
-release: CXX_FLAGS:= $(CXX_FLAGS_COMMON) $(CXX_FLAGS_RELEASE)
+release: CXX_FLAGS:= $(CXX_FLAGS_COMMON) $(CXX_FLAGS_RELEASE) 
+release: CXX_FLAGS_TEST := $(CXX_FLAGS_TEST_RELEASE)
 release: $(LIB_PATH)
 
-debug: CXX_FLAGS:= $(CXX_FLAGS_COMMON) $(CXX_FLAGS_DEBUG)
+debug: CXX_FLAGS:= $(CXX_FLAGS_COMMON) $(CXX_FLAGS_DEBUG) 
+debug: CXX_FLAGS_TEST := $(CXX_FLAGS_TEST_DEBUG)
 debug: $(LIB_PATH)
 
 # Link test executables with the library
 $(TEST_BIN_DIR)/%$(EXECUTABLE_EXT): $(TEST_OBJ_DIR)/%.o $(LIB_PATH) | $(TEST_BIN_DIR)
-	$(CXX) $(CXX_FLAGS) $(CSS_FLAGS_TEST) $< -o $@ $(TEST_LIBS)
+	$(CXX) $(CXX_FLAGS) $(CSS_FLAGS_TEST) $< -o $@ $(TEST_LIBS) $(CXX_FLAGS_TEST)
 
 # Compile test object files
 $(TEST_OBJ_DIR)/%.o: $(TEST_SRC_DIR)/%.cpp | $(TEST_OBJ_DIR)

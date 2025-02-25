@@ -10,7 +10,7 @@ namespace forgeGUI
         {
             glm::uvec2 size{};
             glm::ivec2 pos{};
-            glm::vec3 bgColor{};
+            glm::vec4 bgColor{};
             unsigned int depth = 0;
         };
         static std::vector<baseQuadData> quadData;
@@ -24,11 +24,11 @@ namespace forgeGUI
     public:
         static GLuint GetVAO();
         static GLuint GetShader();
-        static void Draw();
-        void updateBuffer();
+        static void DrawAll(glm::uvec2 windowSize);
+        void static UpdateBuffer();
         BaseQuad(BaseQuad&) = delete;
         BaseQuad(BaseQuad&&) = delete;
-        BaseQuad(glm::ivec2 size, glm::ivec2 pos, glm::vec3 bgColor);
+        BaseQuad(glm::ivec2 size, glm::ivec2 pos, glm::vec4 bgColor);
         inline glm::uvec2& size()
         {
             return quadData[dataIndex].size;
@@ -45,11 +45,11 @@ namespace forgeGUI
         {
             return quadData[dataIndex].pos;
         }
-        inline glm::vec3& bgColor()
+        inline glm::vec4& bgColor()
         {
             return quadData[dataIndex].bgColor;
         }
-        inline const glm::vec3& bgColor() const
+        inline const glm::vec4& bgColor() const
         {
             return quadData[dataIndex].bgColor;
         }
